@@ -164,7 +164,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                    findViewById(R.id.info_text).setVisibility(View.GONE);
 
                    if(markerPoints.size() > 1) {
-
                        LayoutInflater li = LayoutInflater.from(MapsActivity.this);
                        View promptsView = li.inflate(R.layout.marker_title_popup, null);
 
