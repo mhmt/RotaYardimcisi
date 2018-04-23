@@ -1,0 +1,77 @@
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <include
+        android:id="@+id/tool_bar"
+        layout="@layout/toolbar" />
+
+    <EditText
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/tempText"
+    android:visibility="gone"/>
+
+    <LinearLayout
+        android:id="@+id/map_controls"
+        android:layout_below="@id/tool_bar"
+        android:layout_width="match_parent"
+        android:padding="10dp"
+        android:orientation="horizontal"
+        android:layout_height="100dp">
+
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:typeface="monospace"
+                android:text="Rota Seçin:"/>
+            <Spinner
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/rota_select"></Spinner>
+            <TextView
+                android:id="@+id/info_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:typeface="monospace"
+                android:visibility="gone"
+                android:text="Eklemek istediğiniz yere uzun basarak rotaya ekleyebilirsiniz."/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <Button
+                android:typeface="monospace"
+                android:id="@+id/create_route"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Yeni Rota Oluştur"
+                android:padding="5dp"
+                android:textColor="@color/primary_light"
+                android:background="@color/accent"/>
+            <CheckBox
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/showMyLocation"
+                android:text="Konumumu Göster"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <fragment
+        android:layout_below="@id/map_controls"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.mehmetozcan.rota.MapsActivity" />
+</RelativeLayout>
+
+
