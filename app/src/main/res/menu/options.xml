@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/add"
+        android:title="Ekle"
+        android:icon="@drawable/add_white_24"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/route_list"
+        android:title="Rotayı Listele"
+        app:showAsAction="always"
+        android:icon="@drawable/list_white_24"/>
+</menu>

@@ -16,6 +16,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -66,12 +69,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private Location mLocation = null;
     private boolean onCreateRoute = false;
+    private boolean onAddPoint = false;
     private Toolbar toolbar;
     private Button createRoute;
     private ArrayList<LatLng> markerPoints= new ArrayList();
     private ArrayList<String> markerTitles = new ArrayList();
     private EditText temp ;
     private Spinner routeSelect;
+    private String selectedRoute="";
+
+    @Override
+    protected void onResume() {
+        updateRoutes(routeSelect);
+        super.onResume();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,10 +128,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             JSONObject latlong = locations.getJSONObject(i);
                             LatLng point = new LatLng(Double.valueOf(latlong.getString("Lat")),Double.valueOf(latlong.getString("Lng")));
                             points.add(point);
+                            markerPoints.add(point);
+                            markerTitles.add(latlong.getString("title"));
                             mMap.addMarker(new MarkerOptions().position(point).title(latlong.getString("title")));
                         }
                         openRoute(points);
-
+                        selectedRoute = route.getString("RouteName");
                     }
                 }catch (Exception e){
                     Log.d("json", "onCreate: "+e.getMessage());
@@ -206,7 +219,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -273,13 +285,87 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     alertDialog.show();
 
 
+                }else if(onAddPoint){
+                    final LatLng mLatLng = latLng;
+
+                    LayoutInflater li = LayoutInflater.from(MapsActivity.this);
+                    View promptsView = li.inflate(R.layout.marker_title_popup, null);
+
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                            MapsActivity.this);
+
+                    alertDialogBuilder.setView(promptsView);
+
+                    final EditText userInput = (EditText) promptsView
+                            .findViewById(R.id.userInput);
+
+                    final TextView textView = (TextView)promptsView.findViewById(R.id.textView1);
+
+                    textView.setText("Konum için başlık girin");
+
+                    alertDialogBuilder
+                            .setCancelable(false)
+                            .setPositiveButton("Tamam",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog,int id) {
+                                            // get user input and set it to result
+                                            // edit text
+                                            markerPoints.add(mLatLng);
+                                            markerTitles.add(userInput.getText().toString()+ "");
+                                            mMap.addMarker(new MarkerOptions().position(mLatLng).title(userInput.getText().toString()));
+                                            Log.d("size", "onClick: ADD: Points: "+markerPoints.size()+" - Titles:"+markerTitles.size());
+                                        }
+                                    });
+
+                    alertDialogBuilder.setCancelable(false);
+
+                    AlertDialog alertDialog = alertDialogBuilder.create();
+
+                    alertDialog.show();
                 }
             }
         });
 
     }
 
-    private void SaveAsJSON(ArrayList<LatLng> list,ArrayList<String> listTitles,String routeName){
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.route_list:
+                startActivity(new Intent(MapsActivity.this,MarkerListActivity.class));
+                break;
+
+            case R.id.add:
+                if(!onAddPoint){
+                    toolbar.setTitle("Durak Ekle");
+                    item.setIcon(R.drawable.done_white_24);
+                    onAddPoint = true;
+                }else{
+                    toolbar.setTitle(R.string.app_name);
+                    item.setIcon(R.drawable.add_white_24);
+                    onAddPoint = false;
+                    Log.d("size", "onClick: ADD: Points: "+markerPoints.size()+" - Titles:"+markerTitles.size());
+
+                    if(markerPoints.size() > 1){
+                        SaveJSON(markerPoints,markerTitles,selectedRoute);
+                        openRoute(markerPoints);
+
+                    }
+
+                }
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options, menu);
+        return true;
+    }
+
+    private void SaveAsJSON(ArrayList<LatLng> list, ArrayList<String> listTitles, String routeName){
         JSONObject jsonObject = new JSONObject();
 
         try{
@@ -309,9 +395,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    private void SaveJSON(ArrayList<LatLng> list, ArrayList<String> listTitles, String routeName){
+        JSONObject jsonObject = new JSONObject();
+
+        try{
+
+            jsonObject.put("RouteName",routeName);
+            JSONArray latlng = new JSONArray();
+            for (int i = 0; i<list.size();i++){
+                LatLng each = list.get(i);
+                latlng.put(new JSONObject().put("Lat",each.latitude).put("Lng",each.longitude).put("title",listTitles.get(i)));
+            }
+
+            jsonObject.put("locations",latlng);
+            Log.d("json", "SaveAsJSON: JSON: "+jsonObject.toString());
+
+            SharedPreferences prefs = getSharedPreferences("routes",MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+
+            JSONArray allRoutes = new JSONArray(prefs.getString("AllRoutes","[]"));
+            allRoutes.put(routeSelect.getSelectedItemPosition(),jsonObject);
+
+            editor.putString("AllRoutes",allRoutes.toString());
+            editor.apply();
+
+        }catch (Exception e){
+            Log.d("json", "SaveAsJSON: "+e.getMessage());
+        }
+
+    }
+
     private void openRoute(ArrayList<LatLng> markerPoints){
         String url = getUrl(markerPoints);
-        Log.d("onMapClick", url.toString());
+//        Log.d("onMapClick", url.toString());
         FetchUrl FetchUrl = new FetchUrl();
 
         // Start downloading json data from Google Directions API
@@ -338,7 +454,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 routeSelect.setAdapter(dataAdapter);
                 routeSelect.setSelection(routeNames.size()-1);
-
+                selectedRoute =  routeSelect.getSelectedItem().toString();
             }
         }catch (Exception e){
             Log.d("json", "onCreate: "+e.getMessage());
