@@ -25,6 +25,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -139,6 +140,7 @@ public class MarkerListActivity extends AppCompatActivity {
                    @Override
                    public void onClick(DialogInterface dialog, int which) {
                         titles.remove(position);
+                        adapter.notifyDataSetChanged();
                         SaveAsJSON(titles,selectedRoute);
                    }
                });
@@ -232,6 +234,18 @@ public class MarkerListActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.edit, menu);
         return true;
+    }
+
+    public View getViewByPosition(int pos, ListView listView) {
+        final int firstListItemPosition = listView.getFirstVisiblePosition();
+        final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
+
+        if (pos < firstListItemPosition || pos > lastListItemPosition ) {
+            return listView.getAdapter().getView(pos, null, listView);
+        } else {
+            final int childIndex = pos - firstListItemPosition;
+            return listView.getChildAt(childIndex);
+        }
     }
 
     public void startDrag(JSONObject string) {
