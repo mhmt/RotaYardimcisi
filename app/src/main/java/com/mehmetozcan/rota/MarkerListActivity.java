@@ -166,12 +166,12 @@ public class MarkerListActivity extends AppCompatActivity {
                         break;
                     }
                     case MotionEvent.ACTION_MOVE: {
-                        // 現在のポジションを取得し
+
                         int position = listView.pointToPosition((int) event.getX(), (int) event.getY());
                         if (position < 0) {
                             break;
                         }
-                        // 移動が検出されたら入れ替え
+
                         if (position != mPosition) {
                             mPosition = position;
                             titles.remove(mDragString);
