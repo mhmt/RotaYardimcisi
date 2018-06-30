@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Rota Yardımcısı</string>
     <string name="title_activity_maps">Rota Yardımcısı</string>
-    <string name="apikey">AIzaSyBrnub40pkrpRxB1BG2zsoQTcStsiHWlNg</string>
+    <string name="apikey"></string>
 </resources>
