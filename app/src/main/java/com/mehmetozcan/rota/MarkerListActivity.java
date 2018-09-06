@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.media.ExifInterface;
 import android.os.Build;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.DragEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -23,10 +25,12 @@ import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -124,8 +128,8 @@ public class MarkerListActivity extends AppCompatActivity {
                } else {
                    dialog = new AlertDialog.Builder(MarkerListActivity.this);
                }
-               dialog.setTitle("Sil");
-               dialog.setMessage("Bu durak noktasını silmek istediğinize emin misiniz?");
+               dialog.setTitle("Düzenle");
+               dialog.setMessage("Bu durak noktasını ne yapmak istiyorsunuz?");
 
 
                dialog.setNeutralButton("İptal", new DialogInterface.OnClickListener() {
@@ -136,7 +140,15 @@ public class MarkerListActivity extends AppCompatActivity {
                    }
                });
 
-               dialog.setPositiveButton("Evet, Sil !", new DialogInterface.OnClickListener() {
+               dialog.setNegativeButton("Noktayı Düzenle", new DialogInterface.OnClickListener() {
+                   @Override
+                   public void onClick(DialogInterface dialog, int which) {
+                      // Log.d("edit", "onClick: "+titles.get(position).toString());
+                       editRoute(position);
+                   }
+               });
+
+               dialog.setPositiveButton("Noktayı Sil!", new DialogInterface.OnClickListener() {
                    @Override
                    public void onClick(DialogInterface dialog, int which) {
                         titles.remove(position);
@@ -339,6 +351,46 @@ public class MarkerListActivity extends AppCompatActivity {
             Log.d("json", "SaveAsJSON: "+e.getMessage());
         }
 
+    }
+
+    private void editRoute(final int position){
+        LayoutInflater li = LayoutInflater.from(MarkerListActivity.this);
+        View promptsView = li.inflate(R.layout.marker_title_popup, null);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                MarkerListActivity.this);
+
+        alertDialogBuilder.setView(promptsView);
+
+        final EditText userInput = (EditText) promptsView
+                .findViewById(R.id.userInput);
+
+        final TextView textView = (TextView)promptsView.findViewById(R.id.textView1);
+
+        textView.setText("Konum için YENİ başlık girin");
+
+        alertDialogBuilder
+                .setCancelable(false)
+                .setPositiveButton("Tamam",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int id) {
+                                // get user input and set it to result
+                                // edit text
+                                try{
+                                    titles.get(position).put("title",userInput.getText().toString());
+                                    adapter.notifyDataSetChanged();
+                                    SaveAsJSON(titles,selectedRoute);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+
+        alertDialogBuilder.setCancelable(false);
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        alertDialog.show();
     }
 
 }
